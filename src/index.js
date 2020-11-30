@@ -23,7 +23,7 @@ const resolvers = {
       return 1.95
     },
     releaseYear() {
-      return null
+      return 2019
     },
     rating() {
       return 4.5
