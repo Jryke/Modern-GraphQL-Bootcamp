@@ -39,18 +39,21 @@ const posts = [
     title: 'My first post',
     body: 'This is my first example posts to use for testing!',
     published: true,
+    author: '1',
   },
   {
     id: '2',
     title: 'My second post',
     body: 'Another example of posting.',
     published: false,
+    author: '1',
   },
   {
     id: '3',
     title: 'My last post',
     body: 'The last time a post will be tested (for now).',
     published: true,
+    author: '2',
   },
 ]
 
@@ -75,6 +78,7 @@ const typeDefs = `
     title: String!
     body: String!
     published: Boolean!
+    author: User!
   }
 `
 
@@ -117,6 +121,13 @@ const resolvers = {
         body: 'This is a post body',
         published: false,
       }
+    },
+  },
+  Post: {
+    author(parent, args, ctx, info) {
+      return users.find(user => {
+        return user.id === parent.author
+      })
     },
   },
 }
