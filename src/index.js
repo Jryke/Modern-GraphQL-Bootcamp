@@ -1,16 +1,13 @@
 import { GraphQLServer } from 'graphql-yoga'
 
-// 5 Scalar types (single value): String, Boolean, Int, Float, ID,
+// Part I
+//
+// 1. Set up a "Comment" type with id and text fields.  Both non-nullable.
+// 2. Set up a "comments" array with 4 comments
+// 3. Set up a "comments" query with a resolver that returns all the comments
+// 4. Run a query to get all 4 comments with both id and text fields
 
-// 1. Set up an array of three posts with dummy post data (id, title, body, published)
-//
-// 2. Set up a "posts" query and resolver that returns all the posts
-//
-// 3. Test the query out
-//
-// 4. Add a "query" argument that only returns posts that contain the query string in the title or body
-//
-// 5. Run a few sample queries searching for posts with a specific title
+// 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
 const users = [
@@ -57,11 +54,31 @@ const posts = [
   },
 ]
 
+const comments = [
+  {
+    id: '1',
+    text: 'nice post!',
+  },
+  {
+    id: '2',
+    text: `I didn't like this post`,
+  },
+  {
+    id: '3',
+    text: 'I agree!',
+  },
+  {
+    id: '4',
+    text: 'I strongly disagree',
+  },
+]
+
 // Type definitions (Schema)
 const typeDefs = `
   type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
+    comments: [Comment!]!
     me: User!
     post: Post!
   }
@@ -80,6 +97,11 @@ const typeDefs = `
     body: String!
     published: Boolean!
     author: User!
+  }
+
+  type Comment {
+    id: ID!
+    text: String!
   }
 `
 
@@ -106,6 +128,9 @@ const resolvers = {
           post.body.toLowerCase().includes(args.query.toLowerCase())
         )
       })
+    },
+    comments(parent, args, ctx, info) {
+      return comments
     },
     me() {
       return {
