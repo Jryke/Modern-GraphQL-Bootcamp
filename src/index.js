@@ -1,15 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga'
-
-// Part III
-// Goal: Set up a relationship between Comment and Post
-//
-// 1. Set up a post field on Comment
-// 2. Update all comments in the array to have a new post field (use one of the post ids as a value)
-// 3. Create a resolver for the Comments post field that returns the post that the comment belongs to
-// 4. Run a sample query that gets all comments and gets the post title
-// 5. Set up a comments field on Post
-// 6. Set up a resolver for the Post comments field that returns all comments belonging to that post
-// 7. Run a sample query that gets all posts and all their comments
+import { v4 as uuidv4 } from 'uuid'
 
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
@@ -95,6 +85,10 @@ const typeDefs = `
     post: Post!
   }
 
+  type Mutation {
+    createUser(name: String!, email: String!, age: Int): User!
+  }
+
   type User {
     id: ID!
     name: String!
@@ -163,6 +157,25 @@ const resolvers = {
         body: 'This is a post body',
         published: false,
       }
+    },
+  },
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const emailTaken = users.some(user => user.email === args.email)
+      if (emailTaken) {
+        throw new Error('Email taken.')
+      }
+
+      const user = {
+        id: uuidv4(),
+        name: args.name,
+        email: args.email,
+        age: args.age,
+      }
+
+      users.push(user)
+
+      return user
     },
   },
   Post: {
