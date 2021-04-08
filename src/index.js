@@ -1,6 +1,18 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { v4 as uuidv4 } from 'uuid'
 
+// Goal: Allow clients to create a new comment
+//
+// 1. Define a new createComment Mutation
+//   - Should take text, author, and post
+//   - Should return a comment
+// 2. Define a resolver method for createComment
+//   - Confirm that the user exists, else throw error
+//   - Confirm that the post exists and is published, else throw error
+//   - If they do exist, create the comment and return it
+// 3. Run the mutation and add a comment
+// 4. Use the comments query to verify the comment was added
+
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
@@ -87,6 +99,8 @@ const typeDefs = `
 
   type Mutation {
     createUser(name: String!, email: String!, age: Int): User!
+    createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+    createComment(text: String!, author: ID!, post: ID!): Comment!
   }
 
   type User {
@@ -176,6 +190,59 @@ const resolvers = {
       users.push(user)
 
       return user
+    },
+    createPost(parent, args, ctx, info) {
+      const userExists = users.some(user => user.id === args.author)
+
+      if (!userExists) {
+        throw new Error('User not found')
+      }
+
+      const post = {
+        id: uuidv4(),
+        title: args.title,
+        body: args.body,
+        published: args.published,
+        author: args.author,
+      }
+
+      posts.push(post)
+
+      return post
+    },
+    createComment(parent, args, ctx, info) {
+      const userExists = users.some(user => user.id === args.author)
+      const postExists = posts.some(post => post.id === args.post)
+      const postIsPublished = posts.find(post => post.id === args.post)
+        .published
+
+      console.log('postIsPublished', postIsPublished)
+
+      // check if post exists and is published in one
+      // const postExists = posts.some(post => {
+      //   return post.id === args.post && post.published
+      // })
+
+      if (!userExists) {
+        throw new Error('User not found')
+      }
+
+      if (!postExists) {
+        throw new Error('Post not found')
+      } else if (!postIsPublished) {
+        throw new Error('Post is not published')
+      }
+
+      const comment = {
+        id: uuidv4(),
+        text: args.text,
+        author: args.author,
+        post: args.post,
+      }
+
+      comments.push(comment)
+
+      return comment
     },
   },
   Post: {
