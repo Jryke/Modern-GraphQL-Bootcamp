@@ -1,18 +1,6 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { v4 as uuidv4 } from 'uuid'
 
-// Goal: Allow clients to create a new comment
-//
-// 1. Define a new createComment Mutation
-//   - Should take text, author, and post
-//   - Should return a comment
-// 2. Define a resolver method for createComment
-//   - Confirm that the user exists, else throw error
-//   - Confirm that the post exists and is published, else throw error
-//   - If they do exist, create the comment and return it
-// 3. Run the mutation and add a comment
-// 4. Use the comments query to verify the comment was added
-
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
@@ -182,9 +170,7 @@ const resolvers = {
 
       const user = {
         id: uuidv4(),
-        name: args.name,
-        email: args.email,
-        age: args.age,
+        ...args,
       }
 
       users.push(user)
@@ -200,10 +186,7 @@ const resolvers = {
 
       const post = {
         id: uuidv4(),
-        title: args.title,
-        body: args.body,
-        published: args.published,
-        author: args.author,
+        ...args,
       }
 
       posts.push(post)
@@ -235,9 +218,7 @@ const resolvers = {
 
       const comment = {
         id: uuidv4(),
-        text: args.text,
-        author: args.author,
-        post: args.post,
+        ...args,
       }
 
       comments.push(comment)
