@@ -1,20 +1,10 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { v4 as uuidv4 } from 'uuid'
 
-//
-// Goal: Create input types for createPost and createComment
-//
-// 1. Create an input for createPost with the same fields.  Use "data or "post" as arg name.
-// 2. Update createPost resolver to use this new object.
-// 3. Verify application still works by creating a post and then fetching it.
-// 4. Create an input type for createComment with the same fields.  Use "data or "comment as arg name.
-// 5. Update createComment resolver to use this new object.
-// 6. Verify applicaiton still works by creating a comment and then fetching it.
-
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
-const users = [
+let users = [
   {
     id: '1',
     name: 'Jesse',
@@ -34,7 +24,7 @@ const users = [
 ]
 
 // Demo post data
-const posts = [
+let posts = [
   {
     id: '1',
     title: 'My first post',
@@ -58,7 +48,7 @@ const posts = [
   },
 ]
 
-const comments = [
+let comments = [
   {
     id: '1',
     text: 'nice post!',
@@ -97,6 +87,7 @@ const typeDefs = `
 
   type Mutation {
     createUser(data: CreateUserInput!): User!
+    deleteUser(id: ID!): User!
     createPost(data: CreatePostInput!): Post!
     createComment(data: CreateCommentInput!): Comment!
   }
@@ -205,6 +196,29 @@ const resolvers = {
       users.push(user)
 
       return user
+    },
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = users.findIndex(user => user.id === args.id)
+
+      if (userIndex === -1) {
+        throw new Error('User not found')
+      }
+
+      const deletedUsers = users.splice(userIndex, 1)
+
+      posts = posts.filter(post => {
+        const match = post.author === args.id
+
+        if (match) {
+          comments = comments.filter(comment => comment.post !== post.id)
+        }
+
+        return !match
+      })
+
+      comments = comments.filter(comment => comment.author !== args.id)
+
+      return deletedUsers[0]
     },
     createPost(parent, args, ctx, info) {
       const userExists = users.some(user => user.id === args.data.author)
