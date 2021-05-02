@@ -1,6 +1,16 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { v4 as uuidv4 } from 'uuid'
 
+//
+// Goal: Create input types for createPost and createComment
+//
+// 1. Create an input for createPost with the same fields.  Use "data or "post" as arg name.
+// 2. Update createPost resolver to use this new object.
+// 3. Verify application still works by creating a post and then fetching it.
+// 4. Create an input type for createComment with the same fields.  Use "data or "comment as arg name.
+// 5. Update createComment resolver to use this new object.
+// 6. Verify applicaiton still works by creating a comment and then fetching it.
+
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
@@ -86,9 +96,28 @@ const typeDefs = `
   }
 
   type Mutation {
-    createUser(name: String!, email: String!, age: Int): User!
-    createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-    createComment(text: String!, author: ID!, post: ID!): Comment!
+    createUser(data: CreateUserInput!): User!
+    createPost(data: CreatePostInput!): Post!
+    createComment(data: CreateCommentInput!): Comment!
+  }
+
+  input CreateUserInput {
+    name: String!
+    email: String!
+    age: Int
+  }
+
+  input CreatePostInput {
+    title: String!
+    body: String!
+    published: Boolean!
+    author: ID!
+  }
+
+  input CreateCommentInput {
+    text: String!
+    author: ID!
+    post: ID!
   }
 
   type User {
@@ -163,14 +192,14 @@ const resolvers = {
   },
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const emailTaken = users.some(user => user.email === args.email)
+      const emailTaken = users.some(user => user.email === args.data.email)
       if (emailTaken) {
         throw new Error('Email taken.')
       }
 
       const user = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       }
 
       users.push(user)
@@ -178,7 +207,7 @@ const resolvers = {
       return user
     },
     createPost(parent, args, ctx, info) {
-      const userExists = users.some(user => user.id === args.author)
+      const userExists = users.some(user => user.id === args.data.author)
 
       if (!userExists) {
         throw new Error('User not found')
@@ -186,7 +215,7 @@ const resolvers = {
 
       const post = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       }
 
       posts.push(post)
@@ -194,17 +223,10 @@ const resolvers = {
       return post
     },
     createComment(parent, args, ctx, info) {
-      const userExists = users.some(user => user.id === args.author)
-      const postExists = posts.some(post => post.id === args.post)
-      const postIsPublished = posts.find(post => post.id === args.post)
+      const userExists = users.some(user => user.id === args.data.author)
+      const postExists = posts.some(post => post.id === args.data.post)
+      const postIsPublished = posts.find(post => post.id === args.data.post)
         .published
-
-      console.log('postIsPublished', postIsPublished)
-
-      // check if post exists and is published in one
-      // const postExists = posts.some(post => {
-      //   return post.id === args.post && post.published
-      // })
 
       if (!userExists) {
         throw new Error('User not found')
@@ -218,7 +240,7 @@ const resolvers = {
 
       const comment = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       }
 
       comments.push(comment)
