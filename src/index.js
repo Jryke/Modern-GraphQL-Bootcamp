@@ -1,6 +1,25 @@
 import { GraphQLServer } from 'graphql-yoga'
 import { v4 as uuidv4 } from 'uuid'
 
+//
+// Goal: Set up a mutation for deleting a post
+//
+// 1. Define a mutation.  It should take the post id.  It should return the deleted post.
+// 2. Define the resolver for the mutation
+//  - Check if the post exists, else throw error
+//  - Remove and return the post
+//  - Remove all comments belonging to that post
+// 3. Test your work by running mutation to delete a post.  Verify post/comments are removed.
+
+//
+// Goal: Set up a mutation for deleting a comment
+//
+// 1. Define a mutation.  It should take the comment id>  It should return the deleted comment.
+// 2. Define the resolver for the mutation
+//  - Check if the comment exists, else throw error
+//  - Remove and return the comment
+// 3. Test your work by running mutation to delete a comment.  Verify comment was removed.
+
 // 5 Scalar types (single value): String, Boolean, Int, Float, ID,
 
 // Demo user data
@@ -89,7 +108,9 @@ const typeDefs = `
     createUser(data: CreateUserInput!): User!
     deleteUser(id: ID!): User!
     createPost(data: CreatePostInput!): Post!
+    deletePost(id: ID!): Post!
     createComment(data: CreateCommentInput!): Comment!
+    deleteComment(id: ID!): Comment!
   }
 
   input CreateUserInput {
@@ -236,6 +257,19 @@ const resolvers = {
 
       return post
     },
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex(post => post.id === args.id)
+
+      if (postIndex === -1) {
+        throw new Error('Post not found')
+      }
+
+      const deletedPosts = posts.splice(postIndex, 1)
+
+      comments = comments.filter(comment => comment.post !== args.id)
+
+      return deletedPosts[0]
+    },
     createComment(parent, args, ctx, info) {
       const userExists = users.some(user => user.id === args.data.author)
       const postExists = posts.some(post => post.id === args.data.post)
@@ -260,6 +294,17 @@ const resolvers = {
       comments.push(comment)
 
       return comment
+    },
+    deleteComment(parent, args, ctx, info) {
+      const commentIndex = comments.findIndex(comment => comment.id === args.id)
+
+      if (commentIndex === -1) {
+        throw new Error('Comment not found')
+      }
+
+      const deletedComments = comments.splice(commentIndex, 1)
+
+      return deletedComments[0]
     },
   },
   Post: {
