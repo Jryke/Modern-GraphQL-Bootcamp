@@ -1,5 +1,16 @@
 import { v4 as uuidv4 } from 'uuid'
 
+//
+// Goal: Set up a mutation for updating a comment
+//
+// 1. Define mutation
+//  - Add id/data for arguments.  Setup data to support title, body, and published.
+//  - Return the updated comment
+// 2. Create resolver method
+//  - Verify comment exists, else throw error
+//  - Update comment properties one at a time
+// 3. Verify your work by updating all properties for a given comment
+
 const Mutation = {
   createUser(parent, args, { db }, info) {
     const emailTaken = db.users.some(user => user.email === args.data.email)
@@ -83,6 +94,38 @@ const Mutation = {
 
     return post
   },
+  updatePost(parent, args, { db }, info) {
+    const { id, data } = args
+    const post = db.posts.find(post => post.id === id)
+
+    if (!post) {
+      throw new Error('Post not found')
+    }
+
+    if (typeof data.title === 'string') {
+      post.title = data.title
+    }
+
+    if (typeof data.body === 'string') {
+      post.body = data.body
+    }
+
+    if (typeof data.published === 'boolean') {
+      post.published = data.published
+    }
+
+    if (typeof data.author === 'string') {
+      const authorExists = db.users.find(user => user.id === data.author)
+
+      if (!authorExists) {
+        throw new Error('Author not found')
+      }
+
+      post.author = data.author
+    }
+
+    return post
+  },
   deletePost(parent, args, { db }, info) {
     const postIndex = db.posts.findIndex(post => post.id === args.id)
 
@@ -118,6 +161,40 @@ const Mutation = {
     }
 
     db.comments.push(comment)
+
+    return comment
+  },
+  updateComment(parent, args, { db }, info) {
+    const { id, data } = args
+    const comment = db.comments.find(comment => comment.id === id)
+
+    if (!comment) {
+      throw new Error('Comment not found')
+    }
+
+    if (typeof data.text === 'string') {
+      comment.text = data.text
+    }
+
+    if (typeof data.author === 'string') {
+      const authorExists = db.users.find(user => user.id === data.author)
+
+      if (!authorExists) {
+        throw new Error('Author not found')
+      }
+
+      comment.author = data.author
+    }
+
+    if (typeof data.post === 'string') {
+      const postExists = db.posts.find(post => post.id === data.post)
+
+      if (!postExists) {
+        throw new Error('Post not found')
+      }
+
+      comment.post = data.post
+    }
 
     return comment
   },
