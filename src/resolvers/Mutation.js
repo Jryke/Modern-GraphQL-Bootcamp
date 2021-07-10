@@ -1,16 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 
-//
-// Goal: Set up a mutation for updating a comment
-//
-// 1. Define mutation
-//  - Add id/data for arguments.  Setup data to support title, body, and published.
-//  - Return the updated comment
-// 2. Create resolver method
-//  - Verify comment exists, else throw error
-//  - Update comment properties one at a time
-// 3. Verify your work by updating all properties for a given comment
-
 const Mutation = {
   createUser(parent, args, { db }, info) {
     const emailTaken = db.users.some(user => user.email === args.data.email)
@@ -78,7 +67,7 @@ const Mutation = {
 
     return user
   },
-  createPost(parent, args, { db }, info) {
+  createPost(parent, args, { db, pubsub }, info) {
     const userExists = db.users.some(user => user.id === args.data.author)
 
     if (!userExists) {
@@ -91,6 +80,10 @@ const Mutation = {
     }
 
     db.posts.push(post)
+
+    if (post.published) {
+      pubsub.publish('post', { post })
+    }
 
     return post
   },
